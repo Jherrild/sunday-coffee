@@ -192,7 +192,6 @@ async function main() {
   // Log to stderr since stdout is used for MCP communication
   console.error("Sunday Coffee MCP Server running on stdio");
   console.error(`Repository: ${GITHUB_OWNER}/${GITHUB_REPO}`);
-  console.error(`GitHub Token: ${GITHUB_TOKEN ? "Set" : "Not set (required)"}`);
 }
 
 main().catch((error) => {
