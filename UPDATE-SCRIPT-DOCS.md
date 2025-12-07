@@ -18,6 +18,18 @@ This script automates the process of updating the Sunday Coffee status page.
 
 ### Running the Script
 
+You can use either the Node.js script directly or the convenient shell wrapper:
+
+#### Using the shell wrapper (recommended):
+```bash
+# To mark coffee as ON for next Sunday
+./update-status.sh on
+
+# To mark coffee as OFF for next Sunday
+./update-status.sh off
+```
+
+#### Using Node.js directly:
 ```bash
 # To mark coffee as ON for next Sunday
 node update-status.js true
