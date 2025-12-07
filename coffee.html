@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Coffee Status</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --on-bg-gradient-start: #e0ffe4;
+      --on-bg-gradient-end: #a8ffce;
+      --off-bg-gradient-start: #f6f6f6;
+      --off-bg-gradient-end: #dadada;
+
+      --on-accent: #1fb66b;
+      --on-accent-soft: rgba(31, 182, 107, 0.12);
+      --off-accent: #c94c4c;
+      --off-accent-soft: rgba(201, 76, 76, 0.12);
+
+      --card-bg: #ffffff;
+      --text-main: #333333;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      color: var(--text-main);
+      transition: background 0.3s ease;
+    }
+
+    body.status-on {
+      background: linear-gradient(
+        135deg,
+        var(--on-bg-gradient-start),
+        var(--on-bg-gradient-end)
+      );
+    }
+
+    body.status-off {
+      background: linear-gradient(
+        135deg,
+        var(--off-bg-gradient-start),
+        var(--off-bg-gradient-end)
+      );
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+      padding: 24px 22px 18px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      top: -80px;
+      right: -80px;
+      opacity: 0.9;
+      pointer-events: none;
+      transition: background 0.3s ease;
+    }
+
+    body.status-on .card::before {
+      background: radial-gradient(circle at center, var(--on-accent-soft), transparent 60%);
+    }
+
+    body.status-off .card::before {
+      background: radial-gradient(circle at center, var(--off-accent-soft), transparent 60%);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    body.status-on .tag {
+      background: var(--on-accent-soft);
+      color: var(--on-accent);
+    }
+
+    body.status-off .tag {
+      background: var(--off-accent-soft);
+      color: var(--off-accent);
+    }
+
+    .tag-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.1);
+    }
+
+    body.status-on .tag-dot {
+      background: #30c272;
+      box-shadow: 0 0 0 6px rgba(48, 194, 114, 0.25);
+    }
+
+    body.status-off .tag-dot {
+      background: #c94c4c;
+      box-shadow: 0 0 0 6px rgba(201, 76, 76, 0.25);
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .headline-line {
+      display: block;
+    }
+
+    .status-on-text,
+    .status-off-text {
+      font-weight: 700;
+    }
+
+    body.status-on .status-on-text {
+      display: inline;
+      color: var(--on-accent);
+    }
+
+    body.status-on .status-off-text {
+      display: none;
+    }
+
+    body.status-off .status-on-text {
+      display: none;
+    }
+
+    body.status-off .status-off-text {
+      display: inline;
+      color: var(--off-accent);
+    }
+
+    .date {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      opacity: 0.8;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    body.status-off .subtitle {
+      opacity: 0.7;
+    }
+
+    .details {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .footer {
+      font-size: 0.78rem;
+      opacity: 0.65;
+      margin-top: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer strong {
+      font-weight: 600;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 20px 18px 16px;
+        border-radius: 20px;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      .date {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+
+<!-- 
+  TOGGLE STATUS HERE:
+  - For coffee:  <body class="status-on">
+  - For no coffee: <body class="status-off">
+-->
+<body class="status-on">
+  <div class="wrapper">
+    <div class="card">
+      <div class="tag">
+        <span class="tag-dot"></span>
+        <span>Coffee status</span>
+      </div>
+
+      <h1>
+        <span class="headline-line">Coffee</span>
+        <span class="headline-line">
+          <span class="status-on-text">is on ☕</span>
+          <span class="status-off-text">is off this week 😢</span>
+        </span>
+      </h1>
+
+      <!-- EDIT THIS DATE EACH WEEK -->
+      <div class="date">Sunday, December 7, 2025</div>
+
+      <p class="subtitle">
+        Check back each week to see if we’re brewing.
+      </p>
+
+      <div class="details">
+        <div class="chip">Time: 9:00 AM – 11:00 AM</div>
+        <div class="chip">Location: Our place</div>
+      </div>
+
+      <div class="footer">
+        <strong>Last updated:</strong> December 3, 2025
+      </div>
+    </div>
+  </div>
+</body>
+</html>
