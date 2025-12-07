@@ -29,6 +29,9 @@ console.log(`Updating coffee status to: ${coffeeStatus ? 'ON' : 'OFF'}`);
  * Calculate the next Sunday date
  * If today is Sunday, return next Sunday (7 days from now)
  * Otherwise, return the upcoming Sunday
+ * 
+ * Note: Uses local timezone. The calculation is based on the system's
+ * local time, so results may vary if run in different timezones.
  */
 function getNextSunday() {
   const today = new Date();
@@ -134,10 +137,25 @@ function main() {
   try {
     // Configure git if needed (for CI environments)
     try {
-      gitExec('git config user.email || git config user.email "github-actions[bot]@users.noreply.github.com"');
-      gitExec('git config user.name || git config user.name "GitHub Actions"');
+      // Check if user.email is configured, if not set it
+      const emailCheck = gitExec('git config user.email').trim();
+      if (!emailCheck) {
+        gitExec('git config user.email "github-actions[bot]@users.noreply.github.com"');
+      }
     } catch (e) {
-      // Ignore if already configured
+      // If git config fails (not set), configure it
+      gitExec('git config user.email "github-actions[bot]@users.noreply.github.com"');
+    }
+    
+    try {
+      // Check if user.name is configured, if not set it
+      const nameCheck = gitExec('git config user.name').trim();
+      if (!nameCheck) {
+        gitExec('git config user.name "GitHub Actions"');
+      }
+    } catch (e) {
+      // If git config fails (not set), configure it
+      gitExec('git config user.name "GitHub Actions"');
     }
     
     // Ensure we're on main branch and up to date
