@@ -1,0 +1,22 @@
+{
+  "name": "sunday-coffee-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for controlling Sunday coffee status",
+  "type": "module",
+  "bin": {
+    "sunday-coffee-mcp": "./mcp-server.js"
+  },
+  "scripts": {
+    "start": "node mcp-server.js"
+  },
+  "keywords": [
+    "mcp",
+    "coffee",
+    "github-actions"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.24.0"
+  }
+}
