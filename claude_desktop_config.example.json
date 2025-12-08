@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "sunday-coffee": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/sunday-coffee/mcp-server.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "your_github_token_here"
+      }
+    }
+  }
+}
