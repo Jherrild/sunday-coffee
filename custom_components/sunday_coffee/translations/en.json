@@ -1,0 +1,23 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Sunday Coffee Status",
+        "description": "Configure the Sunday Coffee integration to trigger GitHub workflow updates.",
+        "data": {
+          "github_token": "GitHub Personal Access Token",
+          "repo_owner": "Repository Owner",
+          "repo_name": "Repository Name",
+          "workflow_file": "Workflow File Name"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid GitHub token",
+      "unknown": "Unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "Integration is already configured"
+    }
+  }
+}

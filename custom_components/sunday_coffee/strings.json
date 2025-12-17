@@ -1,0 +1,7 @@
+{
+    "title": "Sunday Coffee Status",
+    "config_flow": true,
+    "documentation": "https://github.com/Jherrild/sunday-coffee",
+    "issue_tracker": "https://github.com/Jherrild/sunday-coffee/issues",
+    "domain": "sunday_coffee"
+}
