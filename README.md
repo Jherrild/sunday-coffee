@@ -19,7 +19,9 @@ This repository includes an automated update script that can be run locally or t
 
 This repository can be added as a custom integration in Home Assistant via HACS, providing button entities to easily update the coffee status.
 
-#### Installation
+📖 **[See the Complete Configuration Guide](CONFIGURATION_GUIDE.md)** for detailed step-by-step instructions including PAT creation and troubleshooting.
+
+#### Quick Installation
 
 1. **Add to HACS:**
    - Open HACS in your Home Assistant instance
