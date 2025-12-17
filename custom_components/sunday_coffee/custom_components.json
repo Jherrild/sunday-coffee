@@ -1,0 +1,9 @@
+{
+  "sunday_coffee": {
+    "version": "1.0.0",
+    "local_location": "/custom_components/sunday_coffee/__init__.py",
+    "remote_location": "https://github.com/Jherrild/sunday-coffee/releases/latest/download/sunday_coffee.zip",
+    "visit_repo": "https://github.com/Jherrild/sunday-coffee",
+    "changelog": "https://github.com/Jherrild/sunday-coffee/releases"
+  }
+}

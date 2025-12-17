@@ -1,0 +1,11 @@
+{
+  "domain": "sunday_coffee",
+  "name": "Sunday Coffee Status",
+  "version": "1.0.0",
+  "documentation": "https://github.com/Jherrild/sunday-coffee",
+  "issue_tracker": "https://github.com/Jherrild/sunday-coffee/issues",
+  "codeowners": ["@Jherrild"],
+  "config_flow": true,
+  "iot_class": "cloud_push",
+  "requirements": []
+}

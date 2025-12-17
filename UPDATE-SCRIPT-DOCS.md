@@ -82,7 +82,51 @@ curl -X POST \
 
 #### Setting up with Home Assistant
 
-Add this to your Home Assistant configuration:
+##### Option 1: HACS Integration (Recommended)
+
+The easiest way to integrate with Home Assistant is using the HACS custom integration:
+
+1. **Install via HACS:**
+   - Open HACS in your Home Assistant instance
+   - Go to "Integrations"
+   - Click the three dots menu → "Custom repositories"
+   - Add: `https://github.com/Jherrild/sunday-coffee` as an "Integration"
+   - Search for "Sunday Coffee Status" and install
+   - Restart Home Assistant
+
+2. **Configure:**
+   - Go to Settings → Devices & Services → Add Integration
+   - Search for "Sunday Coffee Status"
+   - Enter your GitHub Personal Access Token (with `repo` and `workflow` permissions)
+   - The integration will create two button entities:
+     - `button.sunday_coffee_on` - Turn coffee ON
+     - `button.sunday_coffee_off` - Turn coffee OFF
+
+3. **Use in Dashboard:**
+   ```yaml
+   type: entities
+   title: Sunday Coffee
+   entities:
+     - button.sunday_coffee_on
+     - button.sunday_coffee_off
+   ```
+
+4. **Use in Automations:**
+   ```yaml
+   automation:
+     - alias: "Coffee reminder"
+       trigger:
+         - platform: time
+           at: "08:00:00"
+       action:
+         - service: button.press
+           target:
+             entity_id: button.sunday_coffee_on
+   ```
+
+##### Option 2: REST Command (Manual)
+
+Alternatively, add this to your Home Assistant configuration:
 
 ```yaml
 rest_command:
