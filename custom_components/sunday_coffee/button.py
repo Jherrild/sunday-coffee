@@ -72,7 +72,7 @@ class SundayCoffeeButton(ButtonEntity):
         payload = {
             "ref": "main",
             "inputs": {
-                "coffee_status": str(self._status == "on").lower()
+                "coffee_status": self._status == "on"
             }
         }
         
@@ -88,5 +88,7 @@ class SundayCoffeeButton(ButtonEntity):
                             response.status,
                             error_text
                         )
+        except aiohttp.ClientError as err:
+            _LOGGER.error("Network error triggering workflow: %s", err)
         except Exception as err:
-            _LOGGER.error("Error triggering workflow: %s", err)
+            _LOGGER.exception("Unexpected error triggering workflow: %s", err)
