@@ -38,7 +38,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     """Validate the user input allows us to connect."""
     # Basic validation - check token is not empty
     if not data[CONF_GITHUB_TOKEN]:
-        raise ValueError("GitHub token cannot be empty")
+        raise ValueError("GitHub Personal Access Token is required and cannot be empty")
     
     # Test GitHub API connectivity with the provided token
     owner = data[CONF_REPO_OWNER]
@@ -55,12 +55,18 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers) as response:
-                if response.status != 200:
+                if response.status == 401:
+                    _LOGGER.error("GitHub API authentication failed")
+                    raise ValueError("Invalid GitHub token - please check your token has the required permissions")
+                elif response.status == 404:
+                    _LOGGER.error("GitHub repository not found")
+                    raise ValueError(f"Repository {owner}/{repo} not found or not accessible")
+                elif response.status != 200:
                     _LOGGER.error("GitHub API returned status %s", response.status)
-                    raise ValueError("Invalid token or repository not accessible")
+                    raise ValueError(f"GitHub API error: status {response.status}")
     except aiohttp.ClientError as err:
         _LOGGER.error("Failed to connect to GitHub API: %s", err)
-        raise ValueError("Cannot connect to GitHub API")
+        raise ValueError("Cannot connect to GitHub API - please check your network connection")
     
     return {"title": f"Sunday Coffee - {owner}/{repo}"}
 

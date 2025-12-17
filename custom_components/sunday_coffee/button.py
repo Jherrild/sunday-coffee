@@ -17,6 +17,8 @@ from .const import (
     CONF_REPO_OWNER,
     CONF_REPO_NAME,
     CONF_WORKFLOW_FILE,
+    STATUS_ON,
+    STATUS_OFF,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,8 +33,8 @@ async def async_setup_entry(
     config = hass.data[DOMAIN][config_entry.entry_id]
     
     async_add_entities([
-        SundayCoffeeButton(config, "on"),
-        SundayCoffeeButton(config, "off"),
+        SundayCoffeeButton(config, STATUS_ON),
+        SundayCoffeeButton(config, STATUS_OFF),
     ])
 
 
@@ -49,7 +51,7 @@ class SundayCoffeeButton(ButtonEntity):
     @property
     def icon(self) -> str:
         """Return the icon for the button."""
-        return "mdi:coffee" if self._status == "on" else "mdi:coffee-off"
+        return "mdi:coffee" if self._status == STATUS_ON else "mdi:coffee-off"
 
     async def async_press(self) -> None:
         """Handle the button press."""
@@ -72,7 +74,7 @@ class SundayCoffeeButton(ButtonEntity):
         payload = {
             "ref": "main",
             "inputs": {
-                "coffee_status": self._status == "on"
+                "coffee_status": self._status == STATUS_ON
             }
         }
         

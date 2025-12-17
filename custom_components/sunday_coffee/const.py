@@ -9,3 +9,7 @@ CONF_WORKFLOW_FILE = "workflow_file"
 DEFAULT_REPO_OWNER = "Jherrild"
 DEFAULT_REPO_NAME = "sunday-coffee"
 DEFAULT_WORKFLOW_FILE = "update-coffee-status.yml"
+
+# Button status values
+STATUS_ON = "on"
+STATUS_OFF = "off"
