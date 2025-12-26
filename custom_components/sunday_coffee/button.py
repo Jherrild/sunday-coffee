@@ -74,7 +74,7 @@ class SundayCoffeeButton(ButtonEntity):
         payload = {
             "ref": "main",
             "inputs": {
-                "coffee_status": self._status == STATUS_ON
+                "coffee_status": "true" if self._status == STATUS_ON else "false"
             }
         }
         
