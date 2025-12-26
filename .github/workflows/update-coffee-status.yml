@@ -76,8 +76,7 @@ jobs:
             
             // Update body class
             const statusClass = coffeeStatus ? 'status-on' : 'status-off';
-            // Match the actual body tag, not the ones in comments
-            // Use a more specific pattern that looks for the body tag outside of comments
+            // Use ^ anchor to match body tag at line start, avoiding matches in comments above
             content = content.replace(
               /^<body class=\"status-(on|off)\">/m,
               \`<body class=\"\${statusClass}\">\`
