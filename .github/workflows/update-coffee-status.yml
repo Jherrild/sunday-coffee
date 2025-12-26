@@ -69,6 +69,11 @@ jobs:
             const coffeeStatus = '${{ inputs.coffee_status }}' === 'true';
             const nextSundayStr = '${NEXT_SUNDAY}';
             
+            console.log('=== Coffee Status Update Script ===');
+            console.log('Input coffee_status:', '${{ inputs.coffee_status }}');
+            console.log('Parsed coffeeStatus (boolean):', coffeeStatus);
+            console.log('Next Sunday:', nextSundayStr);
+            
             const today = new Date();
             const lastUpdatedStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             
@@ -76,22 +81,38 @@ jobs:
             
             // Update body class
             const statusClass = coffeeStatus ? 'status-on' : 'status-off';
+            console.log('Setting status class to:', statusClass);
+            
+            // Use ^ anchor to match body tag at line start, avoiding matches in comments above
+            const beforeBody = content.match(/^<body class=\"status-(on|off)\">/m);
+            console.log('Current body tag:', beforeBody ? beforeBody[0] : 'NOT FOUND');
+            
             content = content.replace(
-              /<body class=\"status-(on|off)\">/,
+              /^<body class=\"status-(on|off)\">/m,
               \`<body class=\"\${statusClass}\">\`
             );
             
+            const afterBody = content.match(/^<body class=\"status-(on|off)\">/m);
+            console.log('Updated body tag:', afterBody ? afterBody[0] : 'NOT FOUND');
+            
             // Update date line
+            const beforeDate = content.match(/<div class=\"date\">.*?<\/div>/);
+            console.log('Current date:', beforeDate ? beforeDate[0] : 'NOT FOUND');
+            
             content = content.replace(
               /<div class=\"date\">.*?<\/div>/,
               \`<div class=\"date\">\${nextSundayStr}</div>\`
             );
+            
+            console.log('Updated date to:', nextSundayStr);
             
             // Update last updated
             content = content.replace(
               /<strong>Last updated:<\/strong>\s+[A-Za-z]+\s+\d+,\s+\d+/,
               \`<strong>Last updated:</strong> \${lastUpdatedStr}\`
             );
+            
+            console.log('Updated last modified to:', lastUpdatedStr);
             
             fs.writeFileSync('index.html', content, 'utf8');
             console.log('✅ Updated index.html');
