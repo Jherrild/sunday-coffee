@@ -404,6 +404,14 @@
       <h2>Get Reminders</h2>
       <p>Sign up to receive text reminders about Sunday coffee!</p>
       
+      <!-- 
+        IMPORTANT: Replace YOUR_FORM_ID with your actual Formspree form ID
+        1. Sign up at https://formspree.io (free)
+        2. Create a new form
+        3. Copy your form ID (looks like: xabc1234)
+        4. Replace YOUR_FORM_ID below with your form ID
+        See REMINDER_SIGNUP_SETUP.md for detailed instructions
+      -->
       <form id="signup-form" class="signup-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
         <div class="form-group">
           <label for="name">Name</label>
@@ -425,9 +433,23 @@
             name="phone" 
             required 
             placeholder="(555) 123-4567"
-            pattern="[\(\)\s\-\+\d]+"
+            pattern="^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$"
+            title="Please enter a valid phone number (e.g., 555-123-4567 or (555) 123-4567)"
             autocomplete="tel"
           />
+        </div>
+        
+        <div class="form-group">
+          <label style="display: flex; align-items: start; gap: 8px; font-size: 0.8rem; font-weight: 400;">
+            <input 
+              type="checkbox" 
+              id="consent" 
+              name="consent" 
+              required 
+              style="margin-top: 2px; cursor: pointer;"
+            />
+            <span style="flex: 1;">I agree to receive text message reminders about Sunday coffee and understand I can opt out at any time.</span>
+          </label>
         </div>
         
         <button type="submit" class="submit-btn">Sign Up for Reminders</button>

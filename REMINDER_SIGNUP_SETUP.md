@@ -73,11 +73,16 @@ The form is fully responsive and will:
 
 ## Privacy Considerations
 
-**Important**: Make sure to add a privacy policy or terms of service if collecting phone numbers. Consider adding:
-- A checkbox for consent to receive text messages
-- A link to your privacy policy
+The form includes a required consent checkbox for users to agree to receive text messages. This is important for:
+- Legal compliance (TCPA in the US, GDPR in EU)
+- Setting user expectations
+- Building trust
+
+Additional privacy best practices to consider:
+- Add a privacy policy page explaining how phone numbers will be used
 - Information about how often they'll receive texts
-- An opt-out mechanism
+- Clear opt-out mechanism in your text messages
+- Secure storage of contact information in your form backend
 
 ## Alternative Solutions
 
