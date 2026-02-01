@@ -8,55 +8,38 @@ The Sunday Coffee website now includes a mobile-responsive form that allows user
 
 ## Implementation Approach
 
-Since this website is hosted on **GitHub Pages** (static hosting only), the form uses [Formspree](https://formspree.io/) - a form backend service that's compatible with static sites.
+Since this website is hosted on **GitHub Pages** (static hosting only), the form uses [Fabform.io](https://fabform.io/) - a completely free form backend service that's compatible with static sites.
 
 ## Setup Instructions
 
-### 1. Create a Formspree Account
-
-1. Go to [https://formspree.io/](https://formspree.io/)
-2. Sign up for a free account (supports up to 50 submissions/month)
-3. Verify your email address
-
-### 2. Create a New Form
-
-1. Log in to your Formspree dashboard
-2. Click **"New Form"** or **"+ New Project"**
-3. Give your form a name (e.g., "Sunday Coffee Reminders")
-4. Copy your form's endpoint URL - it will look like:
-   ```
-   https://formspree.io/f/YOUR_FORM_ID
-   ```
-
-### 3. Update the Website
+### 1. Update the Website
 
 1. Open `index.html` in the repository
-2. Find the line with `action="https://formspree.io/f/YOUR_FORM_ID"`
-3. Replace `YOUR_FORM_ID` with your actual Formspree form ID
+2. Find the line with `action="https://fabform.io/f/YOUR_EMAIL"`
+3. Replace `YOUR_EMAIL` with your actual email address (e.g., `your@email.com`)
 4. Commit and push the change
 
-### 4. Configure Form Settings (Optional)
+**That's it!** No account signup required.
 
-In your Formspree dashboard, you can:
+### 2. First Submission Verification
 
-- **Email Notifications**: Get notified when someone signs up
-- **Custom Redirect**: Redirect users after submission
-- **Spam Protection**: Enable reCAPTCHA
-- **Export Data**: Download submissions as CSV
+1. When the first form submission is received, Fabform will send you a verification email
+2. Click the verification link in the email to activate the form
+3. All future submissions will be forwarded to your email automatically
 
 ## How It Works
 
 1. User fills out the form with their name and phone number
 2. JavaScript intercepts the form submission
-3. Data is sent to Formspree via AJAX
-4. Formspree stores the submission and can send you an email notification
+3. Data is sent to Fabform.io via AJAX
+4. Fabform forwards the submission to your email
 5. User sees a success message on the page
 
 ## Processing Sign-Ups
 
-Sign-ups are stored in your Formspree dashboard. To send actual text reminders, you'll need to:
+Sign-ups will be delivered directly to your email inbox. To send actual text reminders, you'll need to:
 
-1. Export the phone numbers from Formspree (CSV format)
+1. Collect phone numbers from your email submissions
 2. Use a text messaging service like:
    - **Twilio** - Programmable SMS API
    - **SimpleTexting** - Bulk SMS service
@@ -86,23 +69,34 @@ Additional privacy best practices to consider:
 
 ## Alternative Solutions
 
-If you need more advanced features or want to avoid third-party services:
+If you need more advanced features or want different options:
 
-1. **Google Forms**: Create a Google Form and embed it (less customizable)
-2. **Zapier + Webhooks**: Use Zapier to connect form submissions to various services
-3. **Netlify/Vercel**: Migrate from GitHub Pages to a platform with serverless functions
-4. **Custom Backend**: Set up your own API endpoint (requires additional hosting)
+1. **Formspree**: Alternative form backend with dashboard (50 submissions/month free)
+2. **Google Forms**: Create a Google Form and embed it (less customizable)
+3. **Zapier + Webhooks**: Use Zapier to connect form submissions to various services
+4. **Netlify/Vercel**: Migrate from GitHub Pages to a platform with serverless functions
+5. **Custom Backend**: Set up your own API endpoint (requires additional hosting)
 
 ## Cost
 
-- **Formspree Free**: 50 submissions/month
-- **Formspree Gold**: $10/month for 1,000 submissions
+- **Fabform.io**: Completely free, unlimited submissions
+- **Email delivery**: Free (uses your email)
 - **SMS Services**: Vary by provider (typically $0.01-0.02 per message)
+
+## Features
+
+- ✅ Completely free with no limits
+- ✅ No account signup required
+- ✅ Email delivery of form submissions
+- ✅ Spam protection built-in
+- ✅ Works with any static site
+- ✅ AJAX and traditional form submissions supported
 
 ## Support
 
 For issues with the form:
 - Check browser console for JavaScript errors
-- Verify the Formspree form ID is correct
+- Verify your email address is correct in the form action
 - Ensure you've committed and deployed the changes
+- Check your spam folder for the verification email (first submission only)
 - Test in different browsers and devices
