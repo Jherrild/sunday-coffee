@@ -348,6 +348,16 @@
       display: block;
     }
 
+    /* Input validation styles */
+    .form-group input:not(:placeholder-shown):invalid {
+      border-color: var(--off-accent);
+      background-color: var(--off-accent-soft);
+    }
+
+    .form-group input:not(:placeholder-shown):valid {
+      border-color: var(--on-accent);
+    }
+
     @media (max-width: 480px) {
       .signup-card {
         padding: 20px 18px;
@@ -403,6 +413,9 @@
     <div class="signup-card">
       <h2>Get Reminders</h2>
       <p>Sign up to receive text reminders about Sunday coffee!</p>
+      <p style="font-size: 0.75rem; opacity: 0.6; margin-top: -10px; margin-bottom: 20px;">
+        Submissions are processed securely via Fabform.io.
+      </p>
       
       <!-- 
         IMPORTANT: Replace YOUR_EMAIL with your actual email address
@@ -432,7 +445,7 @@
             name="phone" 
             required 
             placeholder="(555) 123-4567"
-            pattern="^[+]?[(]?[0-9]{3}[)]?[\s.-]?[0-9]{3}[\s.-]?[0-9]{4,6}$"
+            pattern="^\+?[0-9\s.\-\(\)]{7,20}$"
             title="Please enter a valid phone number (e.g., 555-123-4567 or (555) 123-4567)"
             autocomplete="tel"
           />
@@ -454,7 +467,7 @@
         <button type="submit" class="submit-btn">Sign Up for Reminders</button>
       </form>
 
-      <div id="form-message" class="form-message"></div>
+      <div id="form-message" class="form-message" aria-live="polite"></div>
     </div>
   </div>
 
@@ -463,13 +476,15 @@
     const form = document.getElementById('signup-form');
     const messageDiv = document.getElementById('form-message');
     const submitBtn = form.querySelector('.submit-btn');
+    const inputs = form.querySelectorAll('input');
 
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
       
-      // Disable submit button
+      // Disable inputs and submit button
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting...';
+      inputs.forEach(input => input.disabled = true);
       
       // Clear previous messages
       messageDiv.className = 'form-message';
@@ -491,15 +506,17 @@
           messageDiv.textContent = '✓ Thanks! You\'re signed up for reminders.';
           form.reset();
         } else {
-          throw new Error('Form submission failed');
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Form submission failed');
         }
       } catch (error) {
         messageDiv.className = 'form-message error';
-        messageDiv.textContent = '✗ Something went wrong. Please try again.';
+        messageDiv.textContent = `✗ ${error.message === 'Form submission failed' ? 'Something went wrong. Please try again.' : error.message}`;
       } finally {
-        // Re-enable submit button
+        // Re-enable inputs and submit button
         submitBtn.disabled = false;
         submitBtn.textContent = 'Sign Up for Reminders';
+        inputs.forEach(input => input.disabled = false);
       }
     });
   </script>
