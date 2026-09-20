@@ -37,86 +37,45 @@ jobs:
 
       - name: Calculate next Sunday and update files
         id: update
+        env:
+          COFFEE_STATUS: ${{ inputs.coffee_status }}
         run: |
-          # Calculate next Sunday
-          NEXT_SUNDAY=$(node -e "
-            const today = new Date();
-            const dayOfWeek = today.getDay();
-            const daysUntilSunday = dayOfWeek === 0 ? 7 : (7 - dayOfWeek);
-            const nextSunday = new Date(today);
-            nextSunday.setDate(today.getDate() + daysUntilSunday);
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            console.log(nextSunday.toLocaleDateString('en-US', options));
-          ")
-          echo "next_sunday=${NEXT_SUNDAY}" >> $GITHUB_OUTPUT
-          
-          BRANCH_DATE=$(node -e "
-            const today = new Date();
-            const dayOfWeek = today.getDay();
-            const daysUntilSunday = dayOfWeek === 0 ? 7 : (7 - dayOfWeek);
-            const nextSunday = new Date(today);
-            nextSunday.setDate(today.getDate() + daysUntilSunday);
-            const year = nextSunday.getFullYear();
-            const month = String(nextSunday.getMonth() + 1).padStart(2, '0');
-            const day = String(nextSunday.getDate()).padStart(2, '0');
-            console.log(\`\${year}-\${month}-\${day}\`);
-          ")
-          echo "branch_date=${BRANCH_DATE}" >> $GITHUB_OUTPUT
-          
-          # Update index.html using Node.js
-          node -e "
-            const fs = require('fs');
-            const coffeeStatus = '${{ inputs.coffee_status }}' === 'true';
-            const nextSundayStr = '${NEXT_SUNDAY}';
-            
-            console.log('=== Coffee Status Update Script ===');
-            console.log('Input coffee_status:', '${{ inputs.coffee_status }}');
-            console.log('Parsed coffeeStatus (boolean):', coffeeStatus);
-            console.log('Next Sunday:', nextSundayStr);
-            
-            const today = new Date();
-            const lastUpdatedStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-            
-            let content = fs.readFileSync('index.html', 'utf8');
-            
-            // Update body class
-            const statusClass = coffeeStatus ? 'status-on' : 'status-off';
-            console.log('Setting status class to:', statusClass);
-            
-            // Use ^ anchor to match body tag at line start, avoiding matches in comments above
-            const beforeBody = content.match(/^<body class=\"status-(on|off)\">/m);
-            console.log('Current body tag:', beforeBody ? beforeBody[0] : 'NOT FOUND');
-            
-            content = content.replace(
-              /^<body class=\"status-(on|off)\">/m,
-              \`<body class=\"\${statusClass}\">\`
-            );
-            
-            const afterBody = content.match(/^<body class=\"status-(on|off)\">/m);
-            console.log('Updated body tag:', afterBody ? afterBody[0] : 'NOT FOUND');
-            
-            // Update date line
-            const beforeDate = content.match(/<div class=\"date\">.*?<\/div>/);
-            console.log('Current date:', beforeDate ? beforeDate[0] : 'NOT FOUND');
-            
-            content = content.replace(
-              /<div class=\"date\">.*?<\/div>/,
-              \`<div class=\"date\">\${nextSundayStr}</div>\`
-            );
-            
-            console.log('Updated date to:', nextSundayStr);
-            
-            // Update last updated
-            content = content.replace(
-              /<strong>Last updated:<\/strong>\s+[A-Za-z]+\s+\d+,\s+\d+/,
-              \`<strong>Last updated:</strong> \${lastUpdatedStr}\`
-            );
-            
-            console.log('Updated last modified to:', lastUpdatedStr);
-            
-            fs.writeFileSync('index.html', content, 'utf8');
-            console.log('✅ Updated index.html');
-          "
+          node <<'NODE'
+          const fs = require('fs');
+          const { getCoffeeDates } = require('./coffee-dates');
+          const coffeeStatus = process.env.COFFEE_STATUS === 'true';
+          const { nextSunday, branchDate, lastUpdated } = getCoffeeDates();
+
+          console.log('=== Coffee Status Update Script ===');
+          console.log('Input coffee_status:', process.env.COFFEE_STATUS);
+          console.log('Next Sunday:', nextSunday);
+
+          let content = fs.readFileSync('index.html', 'utf8');
+          const statusClass = coffeeStatus ? 'status-on' : 'status-off';
+          // Anchor to the real body tag, not examples inside comments.
+          const bodyPattern = /^<body class="status-(on|off)">/m;
+          console.log('Current body tag:', content.match(bodyPattern)?.[0] || 'NOT FOUND');
+          content = content.replace(bodyPattern, `<body class="${statusClass}">`);
+          console.log('Updated body tag:', content.match(bodyPattern)?.[0] || 'NOT FOUND');
+
+          console.log('Current date:', content.match(/<div class="date">.*?<\/div>/)?.[0] || 'NOT FOUND');
+          content = content.replace(
+            /<div class="date">.*?<\/div>/,
+            `<div class="date">${nextSunday}</div>`
+          );
+          console.log('Updated date to:', nextSunday);
+
+          content = content.replace(
+            /<strong>Last updated:<\/strong>\s+[A-Za-z]+\s+\d+,\s+\d+/,
+            `<strong>Last updated:</strong> ${lastUpdated}`
+          );
+          console.log('Updated last modified to:', lastUpdated);
+          fs.writeFileSync('index.html', content, 'utf8');
+          // One clock sample supplies the HTML, PR title, and branch date.
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,
+            `next_sunday=${nextSunday}\nbranch_date=${branchDate}\n`);
+          console.log('✅ Updated index.html');
+          NODE
 
       - name: Create Pull Request
         id: create-pr
