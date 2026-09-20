@@ -5,7 +5,7 @@
  * Usage: node update-status.js <true|false>
  * 
  * This script:
- * 1. Calculates the next Sunday date (always at least 1 day in the future)
+ * 1. Calculates the coffee Sunday in Pacific time (Sunday cutoff: 9:30 AM)
  * 2. Updates index.html with the coffee status and dates
  * 3. Commits and pushes changes to a new branch
  * 4. Creates a pull request and merges it to main
@@ -14,6 +14,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { getCoffeeDates } = require('./coffee-dates');
 
 // Get command line argument
 const args = process.argv.slice(2);
@@ -24,55 +25,6 @@ if (args.length === 0) {
 
 const coffeeStatus = args[0].toLowerCase() === 'true';
 console.log(`Updating coffee status to: ${coffeeStatus ? 'ON' : 'OFF'}`);
-
-/**
- * Calculate the next Sunday date
- * If today is Sunday, return next Sunday (7 days from now)
- * Otherwise, return the upcoming Sunday
- * 
- * Note: Uses local timezone. The calculation is based on the system's
- * local time, so results may vary if run in different timezones.
- */
-function getNextSunday() {
-  const today = new Date();
-  const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-  
-  // Calculate days until next Sunday
-  // If today is Sunday (0), we want next Sunday (7 days)
-  // Otherwise, calculate days remaining in the week
-  const daysUntilSunday = dayOfWeek === 0 ? 7 : (7 - dayOfWeek);
-  
-  const nextSunday = new Date(today);
-  nextSunday.setDate(today.getDate() + daysUntilSunday);
-  
-  return nextSunday;
-}
-
-/**
- * Format date as "Sunday, Month Day, Year"
- */
-function formatSundayDate(date) {
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  return date.toLocaleDateString('en-US', options);
-}
-
-/**
- * Format date as "Month Day, Year" for last updated
- */
-function formatLastUpdated(date) {
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return date.toLocaleDateString('en-US', options);
-}
-
-/**
- * Format date as YYYY-MM-DD for branch name
- */
-function formatDateForBranch(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 /**
  * Update index.html with new status and dates
@@ -89,17 +41,15 @@ function updateIndexHtml(nextSunday, lastUpdated, status) {
   );
   
   // Update the date line
-  const sundayDateStr = formatSundayDate(nextSunday);
   content = content.replace(
     /<div class="date">.*?<\/div>/,
-    `<div class="date">${sundayDateStr}</div>`
+    `<div class="date">${nextSunday}</div>`
   );
   
   // Update last updated footer
-  const lastUpdatedStr = formatLastUpdated(lastUpdated);
   content = content.replace(
     /<strong>Last updated:<\/strong>\s+[A-Za-z]+\s+\d+,\s+\d+/,
-    `<strong>Last updated:</strong> ${lastUpdatedStr}`
+    `<strong>Last updated:</strong> ${lastUpdated}`
   );
   
   fs.writeFileSync(indexPath, content, 'utf8');
@@ -123,15 +73,13 @@ function gitExec(command) {
  * Main execution
  */
 function main() {
-  const nextSunday = getNextSunday();
-  const today = new Date();
-  const branchName = formatDateForBranch(nextSunday);
+  const { nextSunday, branchDate: branchName, lastUpdated } = getCoffeeDates(new Date());
   
-  console.log(`Next Sunday: ${formatSundayDate(nextSunday)}`);
+  console.log(`Next Sunday: ${nextSunday}`);
   console.log(`Branch name: ${branchName}`);
   
   // Update the HTML file
-  updateIndexHtml(nextSunday, today, coffeeStatus);
+  updateIndexHtml(nextSunday, lastUpdated, coffeeStatus);
   
   // Git operations
   try {
@@ -171,7 +119,7 @@ function main() {
     // Stage and commit changes
     console.log('Committing changes...');
     gitExec('git add index.html');
-    const commitMessage = `Update coffee status for ${formatSundayDate(nextSunday)}`;
+    const commitMessage = `Update coffee status for ${nextSunday}`;
     gitExec(`git commit -m "${commitMessage}"`);
     
     // Push branch

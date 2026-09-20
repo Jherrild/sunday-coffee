@@ -4,7 +4,7 @@ This script automates the process of updating the Sunday Coffee status page.
 
 ## Features
 
-- **Automatic Date Calculation**: Always calculates the next Sunday (if run on Sunday, it targets the following week)
+- **Pacific Date Calculation**: Targets the upcoming Sunday; Sunday before 9:30 AM Pacific targets today, and at/after 9:30 AM targets next week
 - **Status Update**: Updates the page to show coffee is ON or OFF
 - **Automated Git Operations**: Creates a branch, commits, and pushes changes
 - **GitHub Actions Integration**: Can be triggered via webhook for Google Assistant or Home Assistant integration
@@ -39,7 +39,7 @@ node update-status.js false
 ```
 
 The script will:
-1. Calculate the next Sunday date (always at least 7 days in the future if run on Sunday)
+1. Calculate the coffee Sunday using Pacific time and the Sunday 9:30 AM cutoff
 2. Create a new branch named with the date (e.g., `2025-12-14`)
 3. Update `index.html` with:
    - Body class: `status-on` or `status-off`
@@ -176,11 +176,24 @@ These are already configured in the workflow file.
 
 ### Date Calculation
 
-The script uses this logic to always get the next Sunday:
-- If today is Sunday (day 0): Returns 7 days from now (next Sunday)
-- If today is Monday-Saturday: Returns the upcoming Sunday
+The workflow and local script share `coffee-dates.js`. Every calculation uses
+`America/Los_Angeles`, regardless of the machine's timezone:
+- Monday–Saturday: the upcoming Sunday, including late Saturday night.
+- Sunday before 9:30 AM Pacific: that same Sunday.
+- Sunday at or after 9:30 AM Pacific: the following Sunday.
 
-This ensures that if you run it on Sunday afternoon, it updates for the following week, not the same day.
+Daylight saving time is handled by the timezone name, not a fixed UTC offset.
+The displayed date, branch date, and last-updated date come from one clock sample.
+Last updated is also displayed in Pacific time.
+
+### Regression Tests
+
+Run `node --test tests/*.test.js` (Node.js 18 or newer). No dependencies are needed.
+Tests execute the workflow's HTML-update step on temporary files with a frozen
+clock for both status values and different runner timezones. Coverage includes
+Saturday evening, the Sunday cutoff, DST transitions, and year/leap-day boundaries.
+No GitHub requests, pushes, or merges are performed by the tests. The standalone
+script's date wiring is also checked, with its existing git commands stubbed.
 
 ### File Updates
 
