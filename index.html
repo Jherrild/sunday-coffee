@@ -15,18 +15,22 @@
 
   <style>
     :root {
-      --on-bg-gradient-start: #e0ffe4;
-      --on-bg-gradient-end: #a8ffce;
-      --off-bg-gradient-start: #f6f6f6;
-      --off-bg-gradient-end: #dadada;
+      --on-bg-gradient-start: #111117;
+      --on-bg-gradient-end: #2b1e18;
+      --off-bg-gradient-start: var(--on-bg-gradient-start);
+      --off-bg-gradient-end: var(--on-bg-gradient-end);
 
-      --on-accent: #1fb66b;
-      --on-accent-soft: rgba(31, 182, 107, 0.12);
-      --off-accent: #c94c4c;
-      --off-accent-soft: rgba(201, 76, 76, 0.12);
+      --on-accent: #ffad66;
+      --on-accent-soft: rgba(255, 173, 102, 0.12);
+      --off-accent: #efa4bd;
+      --off-accent-soft: rgba(239, 164, 189, 0.12);
 
-      --card-bg: #ffffff;
-      --text-main: #333333;
+      --card-bg: #242126;
+      --card-border: #5d4034;
+      --chip-bg: #302a2c;
+      --chip-border: #51413c;
+      --text-main: #faf1e6;
+      --text-muted: #baacb7;
     }
 
     * {
@@ -39,6 +43,7 @@
       font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         sans-serif;
       min-height: 100vh;
+      min-height: 100svh;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -63,15 +68,31 @@
       );
     }
 
+    .halloween-web {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: clamp(82px, 20vw, 208px);
+      height: auto;
+      color: rgba(249, 229, 209, 0.36);
+      pointer-events: none;
+      user-select: none;
+      z-index: 0;
+    }
+
     .wrapper {
       width: 100%;
       max-width: 480px;
+      position: relative;
+      z-index: 1;
     }
 
     .card {
       background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-top: 2px solid #d57937;
       border-radius: 24px;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
       padding: 24px 22px 18px;
       text-align: center;
       position: relative;
@@ -130,13 +151,13 @@
     }
 
     body.status-on .tag-dot {
-      background: #30c272;
-      box-shadow: 0 0 0 6px rgba(48, 194, 114, 0.25);
+      background: var(--on-accent);
+      box-shadow: 0 0 0 5px var(--on-accent-soft);
     }
 
     body.status-off .tag-dot {
-      background: #c94c4c;
-      box-shadow: 0 0 0 6px rgba(201, 76, 76, 0.25);
+      background: var(--off-accent);
+      box-shadow: 0 0 0 5px var(--off-accent-soft);
     }
 
     h1 {
@@ -207,13 +228,13 @@
     .chip {
       padding: 6px 12px;
       border-radius: 999px;
-      border: 1px solid rgba(0, 0, 0, 0.06);
-      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--chip-border);
+      background: var(--chip-bg);
     }
 
     .footer {
       font-size: 0.78rem;
-      opacity: 0.65;
+      color: var(--text-muted);
       margin-top: 10px;
       position: relative;
       z-index: 1;
@@ -246,6 +267,18 @@
   - For no coffee: <body class="status-off">
 -->
 <body class="status-on">
+  <svg class="halloween-web" aria-hidden="true" focusable="false" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
+    <path d="M 200 0 L 2.00 0.00 M 200 0 L 8.75 51.25 M 200 0 L 28.53 99.00 M 200 0 L 59.99 140.01 M 200 0 L 101.00 171.47 M 200 0 L 148.75 191.25 M 200 0 L 200.00 198.00
+      M 165.00 0.00 Q 168.42 4.16 166.19 9.06 Q 170.57 12.19 169.69 17.50 Q 174.73 19.39 175.25 24.75 Q 180.61 25.27 182.50 30.31 Q 187.81 29.43 190.94 33.81 Q 195.84 31.58 200.00 35.00
+      M 132.00 0.00 Q 138.65 8.08 134.32 17.60 Q 142.83 23.68 141.11 34.00 Q 150.91 37.67 151.92 48.08 Q 162.33 49.09 166.00 58.89 Q 176.32 57.17 182.40 65.68 Q 191.92 61.35 200.00 68.00
+      M 99.00 0.00 Q 108.88 12.00 102.44 26.14 Q 115.09 35.17 112.53 50.50 Q 127.08 55.95 128.58 71.42 Q 144.05 72.92 149.50 87.47 Q 164.83 84.91 173.86 97.56 Q 188.00 91.12 200.00 101.00
+      M 66.00 0.00 Q 79.10 15.92 70.57 34.68 Q 87.34 46.66 83.95 67.00 Q 103.26 74.23 105.25 94.75 Q 125.77 96.74 133.00 116.05 Q 153.34 112.66 165.32 129.43 Q 184.08 120.90 200.00 134.00
+      M 33.00 0.00 Q 49.33 19.84 38.69 43.22 Q 59.60 58.16 55.37 83.50 Q 79.43 92.51 81.91 118.09 Q 107.49 120.57 116.50 144.63 Q 141.84 140.40 156.78 161.31 Q 180.16 150.67 200.00 167.00
+      M 2.00 0.00 Q 21.36 23.52 8.75 51.25 Q 33.54 68.95 28.53 99.00 Q 57.05 109.69 59.99 140.01 Q 90.31 142.95 101.00 171.47 Q 131.05 166.46 148.75 191.25 Q 176.48 178.64 200.00 198.00"/>
+    <path d="M175 96V153 M173 157l-9-8-5 2 M173 160l-13-1-4 5 M173 164l-10 6-1 6 M180 157l9-8 5 2 M180 160l13-1 4 5 M180 164l10 6 1 6"/>
+    <ellipse cx="176.5" cy="164" rx="5.5" ry="8" fill="currentColor"/>
+    <circle cx="176.5" cy="155.5" r="3.5" fill="currentColor"/>
+  </svg>
   <div class="wrapper">
     <div class="card">
       <div class="tag">
