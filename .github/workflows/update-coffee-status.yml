@@ -9,6 +9,25 @@ on:
         required: true
         type: boolean
         default: true
+      notes:
+        description: 'Optional notes for this Sunday (plain text; blank keeps same-week notes)'
+        required: false
+        type: string
+        default: ''
+      clear_notes:
+        description: 'Remove the notes (takes precedence over the notes field)'
+        required: false
+        type: boolean
+        default: false
+      theme:
+        description: 'Site theme (keep leaves the current selection unchanged)'
+        required: false
+        type: choice
+        default: keep
+        options:
+          - keep
+          - default
+          - halloween
 
 # Permissions needed for creating PRs and pushing
 permissions:
@@ -39,6 +58,9 @@ jobs:
         id: update
         env:
           COFFEE_STATUS: ${{ inputs.coffee_status }}
+          COFFEE_NOTES: ${{ inputs.notes }}
+          CLEAR_NOTES: ${{ inputs.clear_notes }}
+          COFFEE_THEME: ${{ inputs.theme }}
         run: |
           node <<'NODE'
           const fs = require('fs');
@@ -50,7 +72,11 @@ jobs:
           console.log('Input coffee_status:', process.env.COFFEE_STATUS);
           console.log('Next Sunday:', nextSunday);
 
-          let content = fs.readFileSync('index.html', 'utf8');
+          const { updateCoffeeNotes } = require('./coffee-notes');
+          let content = updateCoffeeNotes(fs.readFileSync('index.html', 'utf8'), process.env.COFFEE_NOTES || '', {
+            nextSunday,
+            clearNotes: process.env.CLEAR_NOTES === 'true',
+          });
           const statusClass = coffeeStatus ? 'status-on' : 'status-off';
           // Anchor to the real body tag, not examples inside comments.
           const bodyPattern = /^<body class="status-(on|off)">/m;
@@ -70,6 +96,16 @@ jobs:
             `<strong>Last updated:</strong> ${lastUpdated}`
           );
           console.log('Updated last modified to:', lastUpdated);
+          const theme = process.env.COFFEE_THEME || 'keep';
+          if (!['keep', 'default', 'halloween'].includes(theme)) {
+            throw new Error('Unsupported coffee theme');
+          }
+          if (theme !== 'keep') {
+            const themePattern = /^<html lang="en" data-theme="[^"]*">/m;
+            if (!themePattern.test(content)) throw new Error('Missing theme declaration');
+            content = content.replace(themePattern,
+              `<html lang="en" data-theme="${theme}">`);
+          }
           fs.writeFileSync('index.html', content, 'utf8');
           // One clock sample supplies the HTML, PR title, and branch date.
           fs.appendFileSync(process.env.GITHUB_OUTPUT,
@@ -97,6 +133,7 @@ jobs:
             - Updated coffee status to `${{ fromJSON(inputs.coffee_status) && 'status-on' || 'status-off' }}`
             - Updated date to ${{ steps.update.outputs.next_sunday }}
             - Updated last modified timestamp
+            - Applied this Sunday's notes and the selected theme (when provided)
             
             ---
             *This PR will be automatically merged.*

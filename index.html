@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="halloween">
 <head>
   <meta charset="UTF-8" />
   <title>Coffee Status</title>
@@ -15,6 +15,29 @@
 
   <style>
     :root {
+      --on-bg-gradient-start: #e0ffe4;
+      --on-bg-gradient-end: #a8ffce;
+      --off-bg-gradient-start: #f6f6f6;
+      --off-bg-gradient-end: #dadada;
+
+      --on-accent: #126b3b;
+      --on-accent-soft: rgba(31, 182, 107, 0.12);
+      --off-accent: #ad3535;
+      --off-accent-soft: rgba(201, 76, 76, 0.12);
+
+      --card-bg: #ffffff;
+      --card-border: 0 solid transparent;
+      --card-border-top: 0 solid transparent;
+      --card-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+      --chip-bg: rgba(255, 255, 255, 0.8);
+      --chip-border: 1px solid rgba(0, 0, 0, 0.06);
+      --note-bg: #f5faf6;
+      --note-border: 1px solid #d8e6dc;
+      --text-main: #333333;
+      --text-muted: #666666;
+    }
+
+    :root[data-theme="halloween"] {
       --on-bg-gradient-start: #111117;
       --on-bg-gradient-end: #2b1e18;
       --off-bg-gradient-start: var(--on-bg-gradient-start);
@@ -26,9 +49,13 @@
       --off-accent-soft: rgba(239, 164, 189, 0.12);
 
       --card-bg: #242126;
-      --card-border: #5d4034;
+      --card-border: 1px solid #5d4034;
+      --card-border-top: 2px solid #d57937;
+      --card-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
       --chip-bg: #302a2c;
-      --chip-border: #51413c;
+      --chip-border: 1px solid #51413c;
+      --note-bg: #2e2728;
+      --note-border: 1px solid #51413c;
       --text-main: #faf1e6;
       --text-muted: #baacb7;
     }
@@ -69,6 +96,11 @@
     }
 
     .halloween-web {
+      display: none;
+    }
+
+    :root[data-theme="halloween"] .halloween-web {
+      display: block;
       position: absolute;
       top: 0;
       right: 0;
@@ -89,10 +121,10 @@
 
     .card {
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-top: 2px solid #d57937;
+      border: var(--card-border);
+      border-top: var(--card-border-top);
       border-radius: 24px;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+      box-shadow: var(--card-shadow);
       padding: 24px 22px 18px;
       text-align: center;
       position: relative;
@@ -228,8 +260,44 @@
     .chip {
       padding: 6px 12px;
       border-radius: 999px;
-      border: 1px solid var(--chip-border);
+      border: var(--chip-border);
       background: var(--chip-bg);
+    }
+
+    .week-note {
+      position: relative;
+      z-index: 1;
+      text-align: left;
+      background: var(--note-bg);
+      border: var(--note-border);
+      border-radius: 14px;
+      padding: 17px 18px 18px;
+      margin: 20px 0;
+      overflow-wrap: anywhere;
+    }
+
+    .week-note h2 {
+      color: var(--on-accent);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 500;
+      margin-bottom: 9px;
+    }
+
+    body.status-off .week-note h2 {
+      color: var(--off-accent);
+    }
+
+    .week-note p {
+      font-size: 0.9rem;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--text-main);
+    }
+
+    .week-note p + p {
+      margin-top: 10px;
     }
 
     .footer {
@@ -256,6 +324,12 @@
 
       .date {
         font-size: 1.1rem;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .week-note {
+        padding: 15px;
       }
     }
   </style>
@@ -305,6 +379,13 @@
         <div class="chip">Time: 9:00 AM – 11:00 AM</div>
         <div class="chip">Location: Our place</div>
       </div>
+
+      <!-- COFFEE_NOTES_START -->
+      <section class="week-note" aria-labelledby="note-title" hidden>
+        <h2 id="note-title">This week</h2>
+
+      </section>
+      <!-- COFFEE_NOTES_END -->
 
       <div class="footer">
         <strong>Last updated:</strong> October 31, 2026
