@@ -2,24 +2,25 @@
 
 /**
  * Script to update the Sunday Coffee status page
- * Usage: node update-status.js <true|false>
+ * Usage: node update-status.js <true|false> [notes]
  * 
  * This script:
  * 1. Calculates the coffee Sunday in Pacific time (Sunday cutoff: 9:30 AM)
  * 2. Updates index.html with the coffee status and dates
  * 3. Commits and pushes changes to a new branch
- * 4. Creates a pull request and merges it to main
+ * 4. Prints the branch so a pull request can be created separately
  */
 
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const { getCoffeeDates } = require('./coffee-dates');
+const { updateCoffeeNotes } = require('./coffee-notes');
 
 // Get command line argument
 const args = process.argv.slice(2);
 if (args.length === 0) {
-  console.error('Usage: node update-status.js <true|false>');
+  console.error('Usage: node update-status.js <true|false> [notes]');
   process.exit(1);
 }
 
@@ -31,12 +32,12 @@ console.log(`Updating coffee status to: ${coffeeStatus ? 'ON' : 'OFF'}`);
  */
 function updateIndexHtml(nextSunday, lastUpdated, status) {
   const indexPath = path.join(__dirname, 'index.html');
-  let content = fs.readFileSync(indexPath, 'utf8');
+  let content = updateCoffeeNotes(fs.readFileSync(indexPath, 'utf8'), args[1] || '', { nextSunday });
   
   // Update body class (status-on or status-off)
   const statusClass = status ? 'status-on' : 'status-off';
   content = content.replace(
-    /<body class="status-(on|off)">/,
+    /^<body class="status-(on|off)">/m,
     `<body class="${statusClass}">`
   );
   
@@ -61,7 +62,7 @@ function updateIndexHtml(nextSunday, lastUpdated, status) {
  */
 function gitExec(command) {
   try {
-    return execSync(command, { encoding: 'utf8', stdio: 'pipe' });
+    return execSync(command, { cwd: __dirname, encoding: 'utf8', stdio: 'pipe' });
   } catch (error) {
     console.error(`Git command failed: ${command}`);
     console.error(error.message);
@@ -78,11 +79,11 @@ function main() {
   console.log(`Next Sunday: ${nextSunday}`);
   console.log(`Branch name: ${branchName}`);
   
-  // Update the HTML file
-  updateIndexHtml(nextSunday, lastUpdated, coffeeStatus);
-  
   // Git operations
   try {
+    if (gitExec('git status --porcelain').trim()) {
+      throw new Error('A clean working tree is required; commit or move your changes first.');
+    }
     // Configure git if needed (for CI environments)
     try {
       // Check if user.email is configured, if not set it
@@ -106,15 +107,16 @@ function main() {
       gitExec('git config user.name "GitHub Actions"');
     }
     
-    // Ensure we're on main branch and up to date
+    // Start from remote main without resetting the user's local main branch.
     console.log('Fetching latest changes...');
     gitExec('git fetch origin main');
-    gitExec('git checkout main');
-    gitExec('git reset --hard origin/main');
     
     // Create and checkout new branch
     console.log(`Creating branch: ${branchName}`);
-    gitExec(`git checkout -b ${branchName}`);
+    gitExec(`git checkout -b ${branchName} origin/main`);
+
+    // Write after checkout so git cannot discard the updated status or notes.
+    updateIndexHtml(nextSunday, lastUpdated, coffeeStatus);
     
     // Stage and commit changes
     console.log('Committing changes...');
