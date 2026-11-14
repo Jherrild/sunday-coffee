@@ -13,10 +13,10 @@ const workflow = fs.readFileSync(path.join(root, '.github/workflows/update-coffe
 
 // Run the actual workflow's mutation step, never its push/PR/merge steps.
 // Freeze the clock in each Node process, including the old inline implementation.
-function runUpdate(t, instant, status, timeZone = 'UTC') {
+function runUpdate(t, instant, status, timeZone = 'UTC', options = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'coffee-test-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
-  fs.writeFileSync(path.join(dir, 'index.html'), originalHtml);
+  fs.writeFileSync(path.join(dir, 'index.html'), options.html ?? originalHtml);
   for (const name of fs.readdirSync(root).filter(name => name.endsWith('.js'))) {
     fs.copyFileSync(path.join(root, name), path.join(dir, name));
   }
@@ -42,10 +42,20 @@ function runUpdate(t, instant, status, timeZone = 'UTC') {
       TZ: timeZone,
       TEST_NOW: instant,
       COFFEE_STATUS: String(status),
+      COFFEE_NOTES: options.notes ?? '',
+      CLEAR_NOTES: String(options.clearNotes ?? false),
+      COFFEE_THEME: options.theme ?? 'keep',
       GITHUB_OUTPUT: outputPath,
       NODE_OPTIONS: `--require=${clockPath}`,
     },
   });
+  if (options.expectedError) {
+    assert.notEqual(result.status, 0, 'expected the mutation step to fail');
+    assert.match(result.stderr, options.expectedError);
+    assert.equal(fs.readFileSync(path.join(dir, 'index.html'), 'utf8'), options.html ?? originalHtml,
+      'a rejected update must not partially write the page');
+    return;
+  }
   assert.equal(result.status, 0, result.stderr || result.stdout);
   const outputs = Object.fromEntries(fs.readFileSync(outputPath, 'utf8').trim()
     .split('\n').map(line => {
@@ -64,6 +74,69 @@ function assertUpdate(result, status, sunday, branchDate, lastUpdated) {
   // Examples inside HTML comments must remain untouched.
   assert.deepEqual(result.html.match(/<!--[\s\S]*?-->/g), originalHtml.match(/<!--[\s\S]*?-->/g));
 }
+
+test('workflow renders freeform notes as escaped text with paragraph breaks', t => {
+  const result = runUpdate(t, '2026-10-31T18:00:00Z', true, 'UTC', {
+    notes: 'Bring <coffee> & tea.\nSecond line.\n\n"See you" — ☕',
+  });
+  assert.match(result.html, /<section class="week-note" aria-labelledby="note-title">/);
+  assert.ok(result.html.includes('<p>Bring &lt;coffee&gt; &amp; tea.<br>Second line.</p>'));
+  assert.ok(result.html.includes('<p>&quot;See you&quot; — ☕</p>'));
+  assertUpdate(result, true, 'Sunday, November 1, 2026', '2026-11-01', 'October 31, 2026');
+});
+
+test('status-only updates keep notes for the same Sunday but clear them for a new Sunday', t => {
+  const initial = runUpdate(t, '2026-10-31T18:00:00Z', true, 'UTC', { notes: 'Plans for this weekend.' });
+  const sameWeek = runUpdate(t, '2026-11-01T16:00:00Z', false, 'UTC', { html: initial.html });
+  assert.ok(sameWeek.html.includes('<p>Plans for this weekend.</p>'));
+  const nextWeek = runUpdate(t, '2026-11-01T18:00:00Z', true, 'UTC', { html: sameWeek.html });
+  assert.ok(!nextWeek.html.includes('Plans for this weekend.'));
+  assert.match(nextWeek.html, /<section class="week-note" aria-labelledby="note-title" hidden>/);
+});
+
+test('clear_notes explicitly hides an existing same-week note', t => {
+  const initial = runUpdate(t, '2026-10-31T18:00:00Z', true, 'UTC', { notes: 'Remove this note.' });
+  const cleared = runUpdate(t, '2026-10-31T19:00:00Z', true, 'UTC', { html: initial.html, clearNotes: true });
+  assert.ok(!cleared.html.includes('Remove this note.'));
+  assert.match(cleared.html, /<section class="week-note" aria-labelledby="note-title" hidden>/);
+});
+
+test('workflow switches the theme independently of status and keeps it on later updates', t => {
+  const halloweenHtml = originalHtml.replace(/<html[^>]*>/, '<html lang="en" data-theme="halloween">');
+  const normal = runUpdate(t, '2026-10-31T18:00:00Z', true, 'UTC', { html: halloweenHtml, theme: 'default' });
+  assert.match(normal.html, /<html lang="en" data-theme="default">/);
+  const kept = runUpdate(t, '2026-10-31T19:00:00Z', false, 'UTC', { html: normal.html });
+  assert.match(kept.html, /<html lang="en" data-theme="default">/);
+  const halloween = runUpdate(t, '2026-10-31T20:00:00Z', false, 'UTC', { html: kept.html, theme: 'halloween' });
+  assert.match(halloween.html, /<html lang="en" data-theme="halloween">/);
+  assertUpdate(halloween, false, 'Sunday, November 1, 2026', '2026-11-01', 'October 31, 2026');
+});
+
+test('theme changes reject a missing configuration variable without partial writes', t => {
+  runUpdate(t, '2026-10-31T18:00:00Z', false, 'UTC', {
+    html: originalHtml.replace(/<html[^>]*>/, '<html lang="en">'),
+    notes: 'Must not partially save', theme: 'default', expectedError: /theme declaration/,
+  });
+});
+
+test('unsupported themes cannot inject markup or partially write notes', t => {
+  runUpdate(t, '2026-10-31T18:00:00Z', false, 'UTC', {
+    notes: 'Must not partially save', theme: 'halloween" onload="alert(1)', expectedError: /Unsupported coffee theme/,
+  });
+});
+
+test('notes travel through environment variables, never interpolated into shell source', t => {
+  assert.match(workflow, /COFFEE_NOTES: \$\{\{ inputs\.notes \}\}/);
+  assert.match(workflow, /CLEAR_NOTES: \$\{\{ inputs\.clear_notes \}\}/);
+  assert.match(workflow, /COFFEE_THEME: \$\{\{ inputs\.theme \}\}/);
+  const script = workflow.split('      - name: Calculate next Sunday and update files\n')[1]
+    .split('\n      - name: ')[0].split('        run: |\n')[1];
+  assert.ok(!script.includes('${{ inputs.notes }}'));
+  const result = runUpdate(t, '2026-10-31T18:00:00Z', true, 'UTC', {
+    notes: '$(printf injected)\nNODE\n<script>alert(1)</script>\n$&',
+  });
+  assert.ok(result.html.includes('$(printf injected)<br>NODE<br>&lt;script&gt;alert(1)&lt;/script&gt;<br>$&amp;'));
+});
 
 test('Saturday evening Pacific targets tomorrow, even though the runner is already on Sunday', t => {
   const result = runUpdate(t, '2026-09-20T03:03:47Z', true);
@@ -128,11 +201,14 @@ test('the standalone script uses the same Pacific dates for HTML and branch nami
     console: { log() {}, error() {} },
     process: { argv: ['node', 'update-status.js', 'true'], exit(code) { throw new Error(`exit ${code}`); } },
     require(name) {
-      if (name === 'child_process') return { execSync(command) { commands.push(command); return 'test'; } };
+      if (name === 'child_process') return { execSync(command) {
+        commands.push(command);
+        return command === 'git status --porcelain' ? '' : 'test';
+      } };
       return localRequire(name);
     },
   });
-  assert.ok(commands.includes('git checkout -b 2026-09-20'), commands.join('\n'));
+  assert.ok(commands.includes('git checkout -b 2026-09-20 origin/main'), commands.join('\n'));
   const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
   assert.ok(html.includes('<div class="date">Sunday, September 20, 2026</div>'));
   assert.ok(html.includes('<strong>Last updated:</strong> September 19, 2026'));

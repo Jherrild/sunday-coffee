@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Shell wrapper for the update-status.js script
-# Usage: ./update-status.sh on|off
+# Usage: ./update-status.sh on|off [notes]
 
 set -e
 
 if [ $# -eq 0 ]; then
-    echo "Usage: $0 <on|off>"
+    echo "Usage: $0 <on|off> [notes]"
     echo ""
     echo "Examples:"
     echo "  $0 on   # Turn coffee status ON"
@@ -30,4 +30,4 @@ case "${STATUS,,}" in
 esac
 
 # Run the Node.js script
-node "$(dirname "$0")/update-status.js" "$BOOL_STATUS"
+node "$(dirname "$0")/update-status.js" "$BOOL_STATUS" "${2:-}"

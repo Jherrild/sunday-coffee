@@ -27,6 +27,12 @@ You can use either the Node.js script directly or the convenient shell wrapper:
 
 # To mark coffee as OFF for next Sunday
 ./update-status.sh off
+
+# Example: publish a note with the status
+./update-status.sh on 'Example note: we will be inside this week.'
+
+# Example: multiple paragraphs (Bash quoting keeps newlines in one argument)
+./update-status.sh on $'First paragraph.\n\nSecond paragraph.'
 ```
 
 #### Using Node.js directly:
@@ -49,6 +55,12 @@ The script will:
 
 **Note**: The script creates and pushes a branch but does not automatically create or merge the PR. For full automation, use the GitHub Actions workflow.
 
+The local script requires a clean working tree. It creates its update branch from
+`origin/main` without resetting local `main`, then writes the status/date/notes.
+Notes use the same same-Sunday preservation and new-Sunday clearing rules as the
+workflow. Omit the optional second argument to perform a status-only update.
+Use the workflow's `clear_notes` input to explicitly clear same-week notes.
+
 ## GitHub Actions Workflow
 
 The repository includes a GitHub Actions workflow that handles the complete automation including PR creation and merging.
@@ -59,13 +71,56 @@ The repository includes a GitHub Actions workflow that handles the complete auto
 2. Select the **Update Coffee Status** workflow
 3. Click **Run workflow**
 4. Select the coffee status (true/false)
-5. Click **Run workflow**
+5. Optionally enter notes, select **Clear notes**, or choose a theme
+6. Click **Run workflow**
 
 The workflow will:
 - Run the update script
 - Create a pull request
 - Automatically merge it to main
 - Trigger the GitHub Pages deployment
+
+### Notes and Themes
+
+Optional inputs:
+
+| Input | Default | Behavior |
+| --- | --- | --- |
+| `notes` | Empty | Nonblank text replaces the note. Blank preserves same-Sunday notes; notes clear when advancing to a different Sunday. |
+| `clear_notes` | `false` | `true` removes notes even if replacement text was supplied. |
+| `theme` | `keep` | `keep`, `default`, or `halloween`. Persists until explicitly changed, independently of ON/OFF status. |
+
+Existing API callers and Home Assistant buttons that only supply `coffee_status`
+continue to work. No Home Assistant integration upgrade is required for that
+compatibility; entering notes currently uses GitHub Actions, its API, or the local
+script, not a new Home Assistant dashboard field.
+
+Example GitHub CLI commands (**these publish through the existing auto-merge
+workflow when run against main**):
+
+```bash
+gh workflow run update-coffee-status.yml -R Jherrild/sunday-coffee \
+  -f coffee_status=true -f notes='Example note: come by when you can.' -f theme=halloween
+
+gh workflow run update-coffee-status.yml -R Jherrild/sunday-coffee \
+  -f coffee_status=false -f clear_notes=true -f theme=default
+```
+
+For longer/multiline notes, the CLI can read a local plain-text file with
+`-F notes=@notes.txt` instead of `-f notes='...'`, or send a JSON string through
+the API. Notes are passed to the renderer as environment data, not interpolated
+into shell source. HTML is escaped, single newlines become line breaks, and blank
+lines separate paragraphs. Empty notes are not displayed. The checked-in page
+starts with no note; documentation/preview examples are not real announcements.
+
+The active theme is the `data-theme` variable on `index.html`'s `<html>` element.
+You can change just that attribute in a normal PR for a theme-only edit, without
+changing the date/status. The status workflow still targets the upcoming Sunday
+as described below; selecting a theme there does not make it a theme-only run.
+See [README](README.md#adding-another-holiday-later) for adding future themes.
+
+All content is public. There is no Navigate button, address gate, CAPTCHA,
+reminder signup, or automatic holiday schedule in this change.
 
 ### Triggering via Webhook (for Google Assistant/Home Assistant)
 

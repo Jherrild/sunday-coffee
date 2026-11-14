@@ -15,6 +15,30 @@ This repository includes an automated update script that can be run locally or t
 ./update-status.sh off
 ```
 
+### Notes and Themes
+
+The **Update Coffee Status** workflow accepts optional `notes`, `clear_notes`, and `theme` inputs in addition to the existing status. See [the usage guide](UPDATE-SCRIPT-DOCS.md#notes-and-themes) for UI/API examples.
+
+- Notes appear in a left-aligned **This week** block below the time/location chips. Plain text supports line breaks and paragraphs; HTML is escaped. An empty note is hidden.
+- Leaving `notes` blank preserves notes for the **same Sunday**. Moving to a different Sunday clears them unless new text is supplied. `clear_notes: true` explicitly removes them and overrides the notes input.
+- The existing Home Assistant ON/OFF buttons remain compatible; they preserve same-week notes and the selected theme. This change does not add a Home Assistant text input or install/update that integration.
+- Themes are selected independently of ON/OFF status. `default` restores the green/white everyday look; `halloween` preserves the Midnight ember palette and spiderweb. The workflow's `keep` option leaves the selection unchanged.
+- **Halloween remains selected initially.** No automatic calendar switching is enabled.
+
+The theme variable lives directly on the root element in `index.html`:
+
+```html
+<html lang="en" data-theme="halloween">
+```
+
+Change it to `data-theme="default"` to turn Halloween off without changing that weekend's status or date. Rendering is CSS-only: there is no browser-side config fetch, JavaScript requirement, or backend.
+
+#### Adding another holiday later
+
+Add a `:root[data-theme="holiday-name"]` CSS block overriding the shared palette/appearance variables. Keep layout and status rules theme-neutral. Scope any decoration to that theme and hide it otherwise. Add the new name to the workflow's `theme` options **and** its supported-theme validation list, then extend the theme tests. Unknown or missing theme attributes fall back to the everyday CSS, while the workflow rejects unsupported selections.
+
+**All notes and theme settings are public website content.** Do not put addresses, passwords, or other secrets in them. Navigation and reminder signup are not included.
+
 ### Home Assistant Integration (HACS)
 
 This repository can be added as a custom integration in Home Assistant via HACS, providing button entities to easily update the coffee status.
